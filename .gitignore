@@ -1,0 +1,122 @@
+# NYC Taxi Pipeline - .gitignore
+
+# ===== OS Generated Files =====
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# ===== Python =====
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# ===== Virtual Environments =====
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+.conda/
+
+# ===== Jupyter Notebooks =====
+.ipynb_checkpoints
+*/.ipynb_checkpoints/*
+
+# ===== Apache Airflow =====
+logs/
+airflow.db
+airflow.cfg
+webserver_config.py
+*.pid
+*.lock
+airflow-worker.pid
+airflow-scheduler.pid
+airflow-webserver.pid
+standalone_admin_password.txt
+
+# ===== Apache Spark =====
+*.log
+spark-warehouse/
+derby.log
+metastore_db/
+.sparkmagic/
+
+# ===== Data Files (Keep structure, ignore large datasets) =====
+data/nyc/*
+data/meta/*
+
+# Ignore events
+events/*
+
+# ===== Configuration & Secrets =====
+secrets/*
+!secrets/.gitkeep
+*.env
+.envrc
+*.key
+*.pem
+kaggle.json
+*.credentials
+
+# ===== IDE & Editors =====
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# ===== Testing =====
+.pytest_cache/
+.tox/
+.nox/
+.coverage
+htmlcov/
+.coverage.*
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+
+# ===== Documentation =====
+docs/_build/
+site/
+
+# ===== Temporary files =====
+*.tmp
+*.temp
+tmp/
+temp/
+.cache/
+
+# ===== DQ Reports (optional - keep in Git for demo) =====
+# dq_*.json
+# etl_metadata.parquet
+
+# ===== CSV Reports (keep for review) =====
+notebooks/assessment_results/*
