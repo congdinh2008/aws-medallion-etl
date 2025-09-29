@@ -1,0 +1,54 @@
+# Environment-specific configuration values
+# File này chứa các giá trị cụ thể cho environment dev
+
+# General
+aws_region   = "us-west-1"
+environment  = "dev"
+project_name = "meta-kaggle-pipeline"
+
+# S3 Configuration
+s3_bucket_name = "psi-de-glue-congdinh"
+
+# Redshift Serverless Configuration  
+redshift_database_name   = "meta_warehouse"
+redshift_master_username = "meta_admin"
+# Note: redshift_master_password phải được set qua environment variable
+# export TF_VAR_redshift_master_password="MetaKaggle2024!"
+
+# Serverless capacity configuration
+redshift_base_capacity_rpus = 8  # Minimum 8 RPUs for development
+redshift_max_capacity_rpus  = 64 # Max scale to 64 RPUs 
+
+# Network configuration (optional for Serverless)
+redshift_publicly_accessible = false
+redshift_security_group_ids  = []
+
+# Cost control settings
+enable_redshift_usage_limits       = true
+redshift_monthly_usage_limit       = 500   # 500 RPU-hours/month (~$125-225)
+redshift_weekly_usage_limit        = 125   # 125 RPU-hours/week
+redshift_usage_limit_breach_action = "log" # log, emit-metric, deactivate
+
+# Optional features (disabled for dev)
+enable_redshift_scheduled_scaling = false
+redshift_business_hours_capacity  = 32
+enable_redshift_resource_policy   = false
+
+# Network Configuration (optional for Serverless)
+private_subnet_ids = []
+
+# Feature Flags
+enable_glue_development_endpoint = false
+enable_cost_optimization         = true
+enable_secrets_manager           = false # Tắt Secrets Manager cho dev để tránh permission issues
+
+# Tags
+common_tags = {
+  Project     = "meta-kaggle-pipeline"
+  Environment = "dev"
+  Owner       = "data-team"
+  ManagedBy   = "terraform"
+  Purpose     = "etl-pipeline"
+  Region      = "us-west-1"
+  CostCenter  = "data-engineering"
+}
