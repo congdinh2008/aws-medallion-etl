@@ -1,0 +1,23 @@
+# Meta Kaggle Pipeline Boto3 Deployment Requirements
+
+# Core AWS SDK
+boto3>=1.28.0
+botocore>=1.31.0
+
+# Configuration Management
+PyYAML>=6.0
+
+# Enhanced Logging & Formatting
+colorama>=0.4.4
+
+# Development & Testing (optional)
+pytest>=7.0.0
+pytest-mock>=3.10.0
+
+# Documentation Generation (optional)  
+sphinx>=5.0.0
+sphinx-rtd-theme>=1.2.0
+
+# Type Checking (optional)
+mypy>=1.0.0
+types-PyYAML>=6.0.0

@@ -1,0 +1,84 @@
+# Meta Kaggle Pipeline Configuration - Development Environment
+# Tương tự terraform.tfvars cho boto3 deployment
+
+# General Configuration
+aws_region: "us-west-1"
+environment: "dev"
+project_name: "meta-kaggle-pipeline"
+
+# S3 Configuration
+s3_bucket_name: "psi-de-glue-congdinh"
+
+# Redshift Serverless Configuration  
+redshift_database_name: "meta_warehouse"
+redshift_master_username: "meta_admin"
+# Note: redshift_master_password should be set via environment variable
+# export REDSHIFT_MASTER_PASSWORD="MetaKaggle2024!"
+
+# Serverless capacity configuration
+redshift_base_capacity_rpus: 8  # Minimum 8 RPUs for development
+redshift_max_capacity_rpus: 64  # Max scale to 64 RPUs 
+
+# Network configuration (optional for Serverless)
+redshift_publicly_accessible: false
+redshift_security_group_ids: []
+
+# Cost control settings
+enable_redshift_usage_limits: true
+redshift_monthly_usage_limit: 500   # 500 RPU-hours/month (~$125-225)
+redshift_weekly_usage_limit: 125    # 125 RPU-hours/week
+redshift_usage_limit_breach_action: "log"  # log, emit-metric, deactivate
+
+# Network Configuration (optional for Serverless)
+private_subnet_ids: []
+
+# Feature Flags
+auto_deploy_advanced_services: true  # Deploy Glue, Redshift, Athena
+enable_secrets_manager: false        # Tắt Secrets Manager cho dev
+enable_cost_optimization: true
+
+# Tags
+common_tags:
+  Project: "meta-kaggle-pipeline"
+  Environment: "dev"
+  Owner: "data-team"
+  ManagedBy: "boto3-deployment"
+  Purpose: "etl-pipeline"
+  Region: "us-west-1"
+  CostCenter: "data-engineering"
+
+# Medallion Architecture Tables
+medallion_tables:
+  - "users"
+  - "datasets" 
+  - "competitions"
+  - "tags"
+  - "kernels"
+
+medallion_layers:
+  - "raw"
+  - "bronze"
+  - "silver"
+  - "gold"
+
+# Glue Configuration
+glue_job_settings:
+  max_concurrent_runs: 3
+  max_retries: 1
+  timeout_minutes: 60
+  worker_type: "G.1X"  # Standard worker type
+  number_of_workers: 2
+
+# Athena Configuration
+athena_workgroup_name: "meta-analytics"
+athena_output_location: "s3://psi-de-glue-congdinh/meta/athena-results/"
+
+# Data Quality Thresholds
+data_quality_config:
+  max_reject_rate: 0.10  # 10% rejection rate threshold
+  required_columns:
+    users: ["user_id", "user_name"]
+    datasets: ["dataset_id", "dataset_title", "owner_user_id"] 
+    competitions: ["competition_id", "title"]
+    tags: ["dataset_id", "tag"]
+    kernels: ["kernel_id", "author_user_id", "title"]

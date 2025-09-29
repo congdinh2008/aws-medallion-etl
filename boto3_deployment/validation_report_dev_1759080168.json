@@ -1,0 +1,72 @@
+{
+  "timestamp": 1759080164.451589,
+  "environment": "dev",
+  "region": "us-west-1",
+  "overall_status": "success",
+  "results": {
+    "s3": {
+      "service": "S3",
+      "checks": [
+        {
+          "check": "bucket_exists",
+          "status": "pass",
+          "message": "Bucket psi-de-glue-congdinh exists"
+        },
+        {
+          "check": "versioning_enabled",
+          "status": "pass",
+          "message": "Bucket versioning is enabled"
+        },
+        {
+          "check": "encryption_enabled",
+          "status": "pass",
+          "message": "Bucket encryption is enabled"
+        },
+        {
+          "check": "folder_structure",
+          "status": "pass",
+          "message": "Found 6/6 expected folders"
+        }
+      ],
+      "overall_status": "success"
+    },
+    "iam": {
+      "service": "IAM",
+      "checks": [],
+      "overall_status": "skipped"
+    },
+    "glue": {
+      "service": "Glue",
+      "checks": [],
+      "overall_status": "skipped"
+    },
+    "redshift": {
+      "service": "RedshiftServerless",
+      "checks": [],
+      "overall_status": "skipped"
+    },
+    "connectivity": {
+      "service": "Connectivity",
+      "tests": [
+        {
+          "test": "s3_access",
+          "status": "pass",
+          "message": "S3 bucket psi-de-glue-congdinh is accessible"
+        },
+        {
+          "test": "aws_credentials",
+          "status": "pass",
+          "message": "AWS credentials valid for: arn:aws:iam::215103618168:user/congdinh"
+        }
+      ],
+      "overall_status": "success"
+    }
+  },
+  "summary": {
+    "total_checks": 6,
+    "passed_checks": 6,
+    "failed_checks": 0,
+    "warning_checks": 0,
+    "success_rate": 1.0
+  }
+}
