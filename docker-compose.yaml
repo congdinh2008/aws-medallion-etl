@@ -50,7 +50,7 @@ x-airflow-common:
   # Comment the image line, place your Dockerfile in the directory where you placed the docker-compose.yaml
   # and uncomment the "build" line below, Then run `docker-compose build` to build the images.
   # image: ${AIRFLOW_IMAGE_NAME:-apache/airflow:3.0.4}
-  build: .
+  build: ./images/airflow-custom
   environment:
     &airflow-common-env
     AIRFLOW__CORE__EXECUTOR: CeleryExecutor
@@ -348,28 +348,29 @@ services:
         condition: service_completed_successfully
 
   spark-master:
-    image: bitnami/spark:3.5.0
+    image: apache/spark:4.0.1
     container_name: spark-master
+    command: >
+      bash -c "
+      /opt/spark/sbin/start-master.sh;
+      tail -f /opt/spark/logs/spark*.out
+      "
     environment:
-      - SPARK_MODE=master
-      - SPARK_RPC_AUTHENTICATION_ENABLED=${SPARK_AUTHENTICATION_ENABLED:-no}
-      - SPARK_RPC_ENCRYPTION_ENABLED=${SPARK_ENCRYPTION_ENABLED:-no}
-      - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=${SPARK_ENCRYPTION_ENABLED:-no}
-      - SPARK_SSL_ENABLED=${SPARK_SSL_ENABLED:-no}
       - SPARK_MASTER_MEMORY=${SPARK_DAEMON_MEMORY:-1g}
       - SPARK_MASTER_OPTS=-Dspark.deploy.recoveryMode=NONE
+      - SPARK_NO_DAEMONIZE=true
     ports:
       - "${SPARK_MASTER_WEBUI_PORT:-1990}:8080"   # Master UI
       - "${SPARK_MASTER_PORT:-7077}:7077"   # Master RPC
     networks: 
       - default
     volumes:
-      - ./apps:/opt/bitnami/spark/apps:ro
-      - ./data:/opt/bitnami/spark/data
+      - ./apps:/opt/spark/apps:ro
+      - ./data:/opt/spark/data
       - ./events:/events
-      - ./conf/spark-defaults.conf:/opt/bitnami/spark/conf/spark-defaults.conf:ro
-      - ./conf/log4j2.properties:/opt/bitnami/spark/conf/log4j2.properties:ro
-      - ./conf/metrics.properties:/opt/bitnami/spark/conf/metrics.properties:ro
+      - ./conf/spark-defaults.conf:/opt/spark/conf/spark-defaults.conf:ro
+      - ./conf/log4j2.properties:/opt/spark/conf/log4j2.properties:ro
+      - ./conf/metrics.properties:/opt/spark/conf/metrics.properties:ro
       - spark-recovery:/tmp/spark-recovery
     restart: unless-stopped
     healthcheck:
@@ -380,21 +381,20 @@ services:
       start_period: 30s
 
   spark-worker:
-    image: bitnami/spark:3.5.0
+    image: apache/spark:4.0.1
     depends_on:
       spark-master:
         condition: service_healthy
+    command: >
+      bash -c "
+      /opt/spark/sbin/start-worker.sh spark://spark-master:${SPARK_MASTER_PORT:-7077};
+      tail -f /opt/spark/logs/spark*.out
+      "
     environment:
-      - SPARK_MODE=worker
-      - SPARK_MASTER_URL=spark://spark-master:${SPARK_MASTER_PORT:-7077}
       - SPARK_WORKER_MEMORY=${SPARK_WORKER_MEMORY:-2G}
       - SPARK_WORKER_CORES=${SPARK_WORKER_CORES:-2}
-      - SPARK_WORKER_INSTANCES=1
-      - SPARK_RPC_AUTHENTICATION_ENABLED=${SPARK_AUTHENTICATION_ENABLED:-no}
-      - SPARK_RPC_ENCRYPTION_ENABLED=${SPARK_ENCRYPTION_ENABLED:-no}
-      - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=${SPARK_ENCRYPTION_ENABLED:-no}
-      - SPARK_SSL_ENABLED=${SPARK_SSL_ENABLED:-no}
       - SPARK_WORKER_OPTS=-Dspark.worker.cleanup.enabled=true -Dspark.worker.cleanup.interval=1800
+      - SPARK_NO_DAEMONIZE=true
     deploy:
       replicas: ${SPARK_WORKER_REPLICAS:-1}
       resources:
@@ -402,17 +402,17 @@ services:
           memory: ${SPARK_WORKER_MEMORY:-2G}
           cpus: '${SPARK_WORKER_CORES:-2}'
         reservations:
-          memory: 1G
+          memory: 2G
           cpus: '1'
     networks: 
       - default
     volumes:
-      - ./apps:/opt/bitnami/spark/apps:ro
-      - ./data:/opt/bitnami/spark/data
+      - ./apps:/opt/spark/apps:ro
+      - ./data:/opt/spark/data
       - ./events:/events
-      - ./conf/spark-defaults.conf:/opt/bitnami/spark/conf/spark-defaults.conf:ro
-      - ./conf/log4j2.properties:/opt/bitnami/spark/conf/log4j2.properties:ro
-      - ./conf/metrics.properties:/opt/bitnami/spark/conf/metrics.properties:ro
+      - ./conf/spark-defaults.conf:/opt/spark/conf/spark-defaults.conf:ro
+      - ./conf/log4j2.properties:/opt/spark/conf/log4j2.properties:ro
+      - ./conf/metrics.properties:/opt/spark/conf/metrics.properties:ro
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "bash", "-c", "exec 3<>/dev/tcp/localhost/8081 && echo -e 'GET / HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n' >&3 && head -1 <&3 | grep -q '200 OK'"]
@@ -422,13 +422,13 @@ services:
       start_period: 45s
 
   spark-history-server:
-    image: bitnami/spark:3.5.0
+    image: apache/spark:4.0.1
     container_name: spark-history-server
     command: >
       bash -c "
       export SPARK_HISTORY_OPTS='-Dspark.history.fs.logDirectory=file:///events -Dspark.history.fs.update.interval=10s -Dspark.history.ui.maxApplications=100 -Dspark.history.retainedApplications=50 -Dspark.history.ui.port=18080';
-      /opt/bitnami/spark/sbin/start-history-server.sh;
-      tail -f /dev/null
+      /opt/spark/sbin/start-history-server.sh;
+      tail -f /opt/spark/logs/spark*.out
       "
     depends_on:
       spark-master:
@@ -442,7 +442,7 @@ services:
       - default
     volumes:
       - ./events:/events:ro
-      - ./conf/log4j2.properties:/opt/bitnami/spark/conf/log4j2.properties:ro
+      - ./conf/log4j2.properties:/opt/spark/conf/log4j2.properties:ro
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "bash", "-c", "exec 3<>/dev/tcp/localhost/18080 && echo -e 'GET / HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n' >&3 && head -1 <&3 | grep -q '200 OK'"]
@@ -452,7 +452,7 @@ services:
       start_period: 60s
 
   jupyter-lab:
-    image: jupyter/pyspark-notebook:spark-3.5.0
+    image: custom-jupyter
     container_name: jupyter-lab
     depends_on:
       spark-master:
@@ -491,6 +491,7 @@ services:
       timeout: 10s
       retries: 3
       start_period: 60s
+      
 volumes:
   postgres-db-volume:
   spark-recovery:
